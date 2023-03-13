@@ -6,10 +6,12 @@ C_INCLUDES += ./lib ./src
 BUILD_DIR ?= build
 SERIALPORT_JSON_READER ?= serialport-json-reader
 
+CC = gcc
+
 SERIALPORT_JSON_READER_OBJECTS = \
 $(addprefix $(BUILD_DIR)/, $(notdir $(C_SOURCE_FILES:.c=.c.o)))
 
-C_FLAGS += $(addprefix -I, $(C_INCLUDES))
+C_FLAGS += $(addprefix -I, $(C_INCLUDES)) -MMD -MP -MF"$(@:%.o=%.d)"
 
 vpath %.c $(sort $(dir $(C_SOURCE_FILES)))
 
@@ -18,10 +20,10 @@ vpath %.c $(sort $(dir $(C_SOURCE_FILES)))
 all: $(BUILD_DIR)/$(SERIALPORT_JSON_READER)
 
 $(BUILD_DIR)/$(SERIALPORT_JSON_READER): $(SERIALPORT_JSON_READER_OBJECTS)
-	gcc -o $@ $^ -lserialport
+	$(CC) -o $@ $^ -lserialport
 
 $(BUILD_DIR)/%.c.o: %.c | $(BUILD_DIR)
-	gcc $(C_FLAGS) -o $@ -c $< -MMD -MP -MF"$(@:%.o=%.d)"
+	$(CC) $(C_FLAGS) -o $@ -c $<
 
 $(BUILD_DIR):
 	mkdir $@
