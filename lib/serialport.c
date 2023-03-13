@@ -4,13 +4,14 @@
 #include <stdio.h>
 
 void SerialportJsonReader_initialize(
-	struct SerialportJsonReader *self, const char *portname
+	struct SerialportJsonReader *self, const char *portname, int baudrate
 ) {
 	int ret;
 
 	self->depth = 0;
 	self->char_count = 0;
 	self->time_count = 0;
+	self->mode = READ_NORMAL;
 	self->handle_char = putchar;
 
 	ret = sp_get_port_by_name(portname, &self->port);
@@ -21,7 +22,7 @@ void SerialportJsonReader_initialize(
 	if (ret < 0)
 		exit_info(ret, "failed opening port \"%s\": (%d)\n", portname, ret);
 
-	sp_set_baudrate(self->port, 115200);
+	sp_set_baudrate(self->port, baudrate);
 	sp_set_bits(self->port, 8);
 	sp_set_parity(self->port, SP_PARITY_NONE);
 	sp_set_stopbits(self->port, 1);
@@ -33,7 +34,39 @@ void SerialportJsonReader_destroy(struct SerialportJsonReader *self) {
 	sp_free_port(self->port);
 }
 
-int SerialportJsonReader_consume_char(
+void SerialportJsonReader_consume_char_escape(
+	struct SerialportJsonReader *self, char ch
+) {
+	/// nothing to do
+}
+
+void SerialportJsonReader_consume_char_string(
+	struct SerialportJsonReader *self, char ch
+) {
+	switch (ch) {
+	case '"':
+		self->mode = READ_NORMAL;
+		break;
+	case '\\':
+		self->mode = READ_ESCAPE;
+		break;
+	}
+}
+
+void SerialportJsonReader_consume_char_char(
+	struct SerialportJsonReader *self, char ch
+) {
+	switch (ch) {
+	case '\'':
+		self->mode = READ_NORMAL;
+		break;
+	case '\\':
+		self->mode = READ_ESCAPE;
+		break;
+	}
+}
+
+void SerialportJsonReader_consume_char_normal(
 	struct SerialportJsonReader *self, char ch
 ) {
 	switch (ch) {
@@ -43,7 +76,30 @@ int SerialportJsonReader_consume_char(
 	case '}':
 		self->depth--;
 		break;
-	default:
+	case '"':
+		self->mode = READ_STRING;
+		break;
+	case '\'':
+		self->mode = READ_CHAR;
+		break;
+	}
+}
+
+int SerialportJsonReader_consume_char(
+	struct SerialportJsonReader *self, char ch
+) {
+	switch (self->mode) {
+	case READ_NORMAL:
+		SerialportJsonReader_consume_char_normal(self, ch);
+		break;
+	case READ_STRING:
+		SerialportJsonReader_consume_char_string(self, ch);
+		break;
+	case READ_CHAR:
+		SerialportJsonReader_consume_char_char(self, ch);
+		break;
+	case READ_ESCAPE:
+		SerialportJsonReader_consume_char_escape(self, ch);
 		break;
 	}
 
