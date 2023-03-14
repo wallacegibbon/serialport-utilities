@@ -11,13 +11,11 @@ int main(int argc, const char **argv) {
 		exit_info(1, "Usage: serialport-json-reader /dev/ttyACM0 115200\n");
 
 	SerialportJsonReader_initialize(&reader, argv[1], atoi(argv[2]));
-
-	ret = SerialportJsonReader_get_json(&reader, 5000);
+	ret = SerialportJsonReader_get_json(&reader, 10000);
+	SerialportJsonReader_destroy(&reader);
 
 	if (!ret)
 		exit_info(ret, "Failed reading json from serial port\n");
-
-	SerialportJsonReader_destroy(&reader);
 
 	return 0;
 }

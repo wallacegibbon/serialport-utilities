@@ -1,9 +1,7 @@
 #ifndef __SERIALPORT_H
 #define __SERIALPORT_H
 
-enum SerialportJsonReaderState {
-	READ_NORMAL, READ_STRING, READ_CHAR, READ_ESCAPE
-};
+enum SerialportJsonReaderState { READ_NORMAL, READ_STRING, READ_ESCAPE };
 
 struct SerialportJsonReader {
 	struct sp_port *port;

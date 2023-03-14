@@ -53,19 +53,6 @@ void SerialportJsonReader_consume_char_string(
 	}
 }
 
-void SerialportJsonReader_consume_char_char(
-	struct SerialportJsonReader *self, char ch
-) {
-	switch (ch) {
-	case '\'':
-		self->mode = READ_NORMAL;
-		break;
-	case '\\':
-		self->mode = READ_ESCAPE;
-		break;
-	}
-}
-
 void SerialportJsonReader_consume_char_normal(
 	struct SerialportJsonReader *self, char ch
 ) {
@@ -79,9 +66,6 @@ void SerialportJsonReader_consume_char_normal(
 	case '"':
 		self->mode = READ_STRING;
 		break;
-	case '\'':
-		self->mode = READ_CHAR;
-		break;
 	}
 }
 
@@ -94,9 +78,6 @@ int SerialportJsonReader_consume_char(
 		break;
 	case READ_STRING:
 		SerialportJsonReader_consume_char_string(self, ch);
-		break;
-	case READ_CHAR:
-		SerialportJsonReader_consume_char_char(self, ch);
 		break;
 	case READ_ESCAPE:
 		SerialportJsonReader_consume_char_escape(self, ch);
