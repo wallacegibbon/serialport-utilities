@@ -7,11 +7,11 @@ int main(int argc, const char **argv) {
 	struct SerialportJsonReader reader;
 	int ret;
 
-	if (argc != 3)
-		exit_info(1, "Usage: serialport-json-reader /dev/ttyACM0 115200\n");
+	if (argc != 4)
+		exit_info(1, "Usage: serialport-json-reader /dev/ttyACM0 115200 10000\n");
 
 	SerialportJsonReader_initialize(&reader, argv[1], atoi(argv[2]));
-	ret = SerialportJsonReader_get_json(&reader, 10000);
+	ret = SerialportJsonReader_get_json(&reader, atoi(argv[3]));
 	SerialportJsonReader_destroy(&reader);
 
 	if (!ret)
