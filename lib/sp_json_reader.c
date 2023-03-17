@@ -69,9 +69,15 @@ void SerialportJsonReader_consume_char_normal(
 	}
 }
 
-int SerialportJsonReader_consume_char(
+enum ConsumeResult { UNFINISHED, FINISHED, INVALID_JSON };
+
+/// Returning 1 means the reading has not finished yet.
+enum ConsumeResult SerialportJsonReader_consume_char(
 	struct SerialportJsonReader *self, char ch
 ) {
+	if (self->char_count == 0 && ch != '{')
+		return INVALID_JSON;
+
 	switch (self->mode) {
 	case READ_NORMAL:
 		SerialportJsonReader_consume_char_normal(self, ch);
@@ -88,13 +94,33 @@ int SerialportJsonReader_consume_char(
 	self->handle_char(ch);
 
 	//printf(">>>> %d, %d\n", self->char_count, self->depth);
+
 	if (self->depth == 0)
-		return 0;
+		return FINISHED;
 	else
-		return 1;
+		return UNFINISHED;
 }
 
-int SerialportJsonReader_next(struct SerialportJsonReader *self) {
+void SerialportJsonReader_check(
+	struct SerialportJsonReader *self, enum ConsumeResult prev_consume_ret
+) {
+	switch (prev_consume_ret) {
+	case INVALID_JSON:
+		exit_info(-1, "invalid JSON data response\n");
+		break;
+	case UNFINISHED:
+		sleep_milliseconds(100);
+		self->time_count += 100;
+		break;
+	case FINISHED:
+		/// nothing to do
+		break;
+	default:
+		/// for future
+	}
+}
+
+void SerialportJsonReader_next(struct SerialportJsonReader *self) {
 	char *cursor;
 	int ret;
 	int count;
@@ -104,15 +130,12 @@ int SerialportJsonReader_next(struct SerialportJsonReader *self) {
 		exit_info(ret, "failed reading serial port: (%d)\n", count);
 
 	cursor = self->buffer;
-	ret = 1;
+	ret = UNFINISHED;
 
-	while (count-- && ret)
+	while (count-- && ret == UNFINISHED)
 		ret = SerialportJsonReader_consume_char(self, *cursor++);
 
-	if (ret) {
-		sleep_milliseconds(100);
-		self->time_count += 100;
-	}
+	SerialportJsonReader_check(self, ret);
 }
 
 static inline int SerialportJsonReader_finished(
