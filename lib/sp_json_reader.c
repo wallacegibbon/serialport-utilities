@@ -1,6 +1,6 @@
-#include "serialport.h"
+#include "sp_json_reader.h"
+#include "sp_util.h"
 #include "libserialport.h"
-#include "common_util.h"
 #include <stdio.h>
 
 void SerialportJsonReader_initialize(

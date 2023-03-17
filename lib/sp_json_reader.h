@@ -1,5 +1,5 @@
-#ifndef __SERIALPORT_H
-#define __SERIALPORT_H
+#ifndef __SP_JSON_READER_H
+#define __SP_JSON_READER_H
 
 enum SerialportJsonReaderState { READ_NORMAL, READ_STRING, READ_ESCAPE };
 
