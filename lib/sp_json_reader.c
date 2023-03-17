@@ -71,7 +71,6 @@ void SerialportJsonReader_consume_char_normal(
 
 enum ConsumeResult { UNFINISHED, FINISHED, INVALID_JSON };
 
-/// Returning 1 means the reading has not finished yet.
 enum ConsumeResult SerialportJsonReader_consume_char(
 	struct SerialportJsonReader *self, char ch
 ) {
@@ -109,6 +108,7 @@ void SerialportJsonReader_check(
 		exit_info(-1, "invalid JSON data response\n");
 		break;
 	case UNFINISHED:
+		/// take a sleep before next nonblocking read from serial port
 		sleep_milliseconds(100);
 		self->time_count += 100;
 		break;
