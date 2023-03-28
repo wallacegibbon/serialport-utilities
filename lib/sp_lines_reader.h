@@ -3,7 +3,7 @@
 
 #include <libserialport.h>
 
-enum SerialportLinesReaderState { STARTING, NORMAL, ENDING };
+enum SerialportLinesReaderState { STARTING, NORMAL, ENDING, ENDED };
 
 #define SERIALPORT_BUFFER_SIZE 256
 #define PHASE_TAG_BUFFER_SIZE 32

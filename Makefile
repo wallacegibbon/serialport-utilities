@@ -6,6 +6,7 @@ C_INCLUDES += ./lib ./src
 #TARGET = serialport-json-reader
 TARGET = serialport-lines-reader
 
+C_FLAGS += -g
 LD_FLAGS += -lserialport
 
 include ./miscellaneous-makefiles/simple-gcc-single.mk

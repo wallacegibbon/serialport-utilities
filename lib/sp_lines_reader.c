@@ -29,6 +29,10 @@ int SerialportLinesReader_nonblocking_read(
 
 enum ConsumeResult { UNFINISHED, FINISHED, INVALID_START };
 
+enum ConsumeResult SerialportLinesReader_consume_char_normal(
+	struct SerialportLinesReader *self, char ch
+);
+
 enum ConsumeResult SerialportLinesReader_consume_char_ending(
 	struct SerialportLinesReader *self, char ch
 ) {
@@ -41,17 +45,17 @@ enum ConsumeResult SerialportLinesReader_consume_char_ending(
 
 	self->phase_tag_buffer[self->phase_tag_index] = '\0';
 
+	int n = strcmp(self->phase_tag_buffer, ending_string);
 	if (strcmp(self->phase_tag_buffer, ending_string) == 0)
 		return FINISHED;
 
 	/// If it's not a ending tag, print it.
-	for (i = 0; i < PHASE_TAG_BUFFER_SIZE; i++)
-		putchar(self->phase_tag_buffer[i]);
+	puts(self->phase_tag_buffer);
 
 	self->phase = NORMAL;
-	//self->phase_tag_index = 0;
+	self->phase_tag_index = 0;
 
-	return UNFINISHED;
+	return SerialportLinesReader_consume_char_normal(self, ch);
 }
 
 enum ConsumeResult SerialportLinesReader_consume_char_starting(
@@ -127,6 +131,7 @@ void SerialportLinesReader_check(
 		self->time_count += 100;
 		break;
 	case FINISHED:
+		self->phase = ENDED;
 		break;
 	}
 }
@@ -154,9 +159,7 @@ void SerialportLinesReader_next(
 static inline int SerialportLinesReader_unfinished(
 	struct SerialportLinesReader *self, int timeout
 ) {
-	return (
-		self->time_count < timeout
-	);
+	return self->phase != ENDED && self->time_count < timeout;
 }
 
 int SerialportLinesReader_get_lines(

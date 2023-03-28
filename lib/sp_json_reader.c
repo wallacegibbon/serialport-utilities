@@ -97,8 +97,6 @@ void SerialportJsonReader_check(
 		sleep_milliseconds(100);
 		self->time_count += 100;
 		break;
-	case FINISHED:
-		break;
 	}
 }
 
