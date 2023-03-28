@@ -1,32 +1,17 @@
 #include "sp_json_reader.h"
 #include "sp_util.h"
-#include "libserialport.h"
 #include <stdio.h>
 
-void SerialportJsonReader_initialize(
-	struct SerialportJsonReader *self, const char *portname, int baudrate
-) {
-	int ret;
+int SerialportJsonReader_nonblocking_read(struct SerialportJsonReader *self);
 
-	self->depth = 0;
+void SerialportJsonReader_initialize(struct SerialportJsonReader *self) {
 	self->char_count = 0;
 	self->time_count = 0;
+	self->depth = 0;
 	self->mode = READ_NORMAL;
 	self->handle_char = putchar;
-
-	ret = sp_get_port_by_name(portname, &self->port);
-	if (ret < 0)
-		exit_info(ret, "failed getting port by name \"%s\": (%d)\n", portname, ret);
-
-	ret = sp_open(self->port, SP_MODE_READ_WRITE);
-	if (ret < 0)
-		exit_info(ret, "failed opening port \"%s\": (%d)\n", portname, ret);
-
-	sp_set_baudrate(self->port, baudrate);
-	sp_set_bits(self->port, 8);
-	sp_set_parity(self->port, SP_PARITY_NONE);
-	sp_set_stopbits(self->port, 1);
-	sp_set_flowcontrol(self->port, SP_FLOWCONTROL_NONE);
+	self->nonblocking_read = SerialportJsonReader_nonblocking_read;
+	self->port = NULL;
 }
 
 void SerialportJsonReader_destroy(struct SerialportJsonReader *self) {
@@ -113,19 +98,22 @@ void SerialportJsonReader_check(
 		self->time_count += 100;
 		break;
 	case FINISHED:
-		/// nothing to do
 		break;
-	default:
-		/// for future
 	}
 }
 
+int SerialportJsonReader_nonblocking_read(
+	struct SerialportJsonReader *self
+) {
+	return sp_nonblocking_read(self->port, self->buffer, SERIALPORT_BUFFER_SIZE);
+}
+
 void SerialportJsonReader_next(struct SerialportJsonReader *self) {
+	enum SerialportJsonReaderState ret;
 	char *cursor;
-	int ret;
 	int count;
 
-	count = sp_nonblocking_read(self->port, self->buffer, 256);
+	count = self->nonblocking_read(self);
 	if (count < 0)
 		exit_info(ret, "failed reading serial port: (%d)\n", count);
 
@@ -138,7 +126,7 @@ void SerialportJsonReader_next(struct SerialportJsonReader *self) {
 	SerialportJsonReader_check(self, ret);
 }
 
-static inline int SerialportJsonReader_finished(
+static inline int SerialportJsonReader_unfinished(
 	struct SerialportJsonReader *self, int timeout
 ) {
 	return (
@@ -150,7 +138,7 @@ static inline int SerialportJsonReader_finished(
 int SerialportJsonReader_get_json(
 	struct SerialportJsonReader *self, int timeout
 ) {
-	while (SerialportJsonReader_finished(self, timeout))
+	while (SerialportJsonReader_unfinished(self, timeout))
 		SerialportJsonReader_next(self);
 
 	return self->time_count < timeout;
