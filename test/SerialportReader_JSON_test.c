@@ -1,4 +1,4 @@
-#include "sp_json_reader.h"
+#include "sp_json_consumer.h"
 #include "sp_util.h"
 #include "sp_port.h"
 #include <stdio.h>
@@ -9,7 +9,7 @@ const char *test_data1 = "{\"a\":\n";
 const char *test_data2 = "{\"b\": \"hello, }}}\"}\n";
 const char *test_data3 = "}\nXXX\n";
 
-int fake_nonblocking_read(struct SerialportJsonReader *self) {
+int fake_nonblocking_read(struct SerialportReader *self) {
 	static int count = 0;
 	switch (count++) {
 	case 0:
@@ -27,17 +27,21 @@ int fake_nonblocking_read(struct SerialportJsonReader *self) {
 }
 
 int main(int argc, const char **argv) {
-	struct SerialportJsonReader reader;
+	struct SerialportReader reader;
+	struct JsonConsumer json_consumer;
 	int ret;
 
-	SerialportJsonReader_initialize(&reader);
+	SerialportReader_initialize(&reader, 256);
+	JsonConsumer_initialize(&json_consumer);
+
+	reader.consumer = (struct SerialportReaderConsumer **) &json_consumer;
 	reader.nonblocking_read = fake_nonblocking_read;
 
-	ret = SerialportJsonReader_read(&reader, 5000);
-	SerialportJsonReader_destroy(&reader);
+	ret = SerialportReader_read(&reader, 5000);
+	SerialportReader_destroy(&reader);
 
 	if (!ret)
-		exit_info(ret, "Failed reading from serial port\n");
+		exit_info(ret, "timeout (reading from serial port)\n");
 
 	return 0;
 }

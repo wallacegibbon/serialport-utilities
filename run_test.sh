@@ -1,8 +1,7 @@
-OBJECTS="build/sp_json_reader.c.o build/sp_lines_reader.c.o build/sp_port.c.o build/sp_util.c.o"
+OBJECTS=$(ls build/*.o | grep -v main)
+TESTS=$(for i in $(ls test/*.c | grep -v main); do basename $i .c; done)
 
-TESTS="SerialportJsonReader_test SerialportLinesReader_test"
-
-make
+make clean && make
 
 for i in $TESTS; do
 	gcc -o build/$i.elf test/$i.c -g -I./lib $OBJECTS -lserialport

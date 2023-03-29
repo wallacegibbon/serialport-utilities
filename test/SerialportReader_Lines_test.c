@@ -1,4 +1,4 @@
-#include "sp_lines_reader.h"
+#include "sp_lines_consumer.h"
 #include "sp_util.h"
 #include "sp_port.h"
 #include <stdio.h>
@@ -9,7 +9,7 @@ const char *test_data1 = "CCOVCLCBEGIN\n";
 const char *test_data2 = "hello\nworld\nCCOVCLCEN\n";
 const char *test_data3 = "CCOVCLCEND\nXXX\n";
 
-int fake_nonblocking_read(struct SerialportLinesReader *self) {
+int fake_nonblocking_read(struct SerialportReader *self) {
 	static int count = 0;
 	switch (count++) {
 	case 0:
@@ -27,17 +27,21 @@ int fake_nonblocking_read(struct SerialportLinesReader *self) {
 }
 
 int main(int argc, const char **argv) {
-	struct SerialportLinesReader reader;
+	struct SerialportReader reader;
+	struct LinesConsumer lines_consumer;
 	int ret;
 
-	SerialportLinesReader_initialize(&reader);
+	SerialportReader_initialize(&reader, 256);
+	LinesConsumer_initialize(&lines_consumer);
+
+	reader.consumer = (struct SerialportReaderConsumer **) &lines_consumer;
 	reader.nonblocking_read = fake_nonblocking_read;
 
-	ret = SerialportLinesReader_read(&reader, 5000);
-	SerialportLinesReader_destroy(&reader);
+	ret = SerialportReader_read(&reader, 5000);
+	SerialportReader_destroy(&reader);
 
 	if (!ret)
-		exit_info(ret, "Failed reading from serial port\n");
+		exit_info(ret, "timeout (reading from serial port)\n");
 
 	return 0;
 }
