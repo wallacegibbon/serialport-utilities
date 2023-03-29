@@ -3,29 +3,28 @@
 
 #include <libserialport.h>
 
-enum SerialportLinesReaderState { STARTING, NORMAL, ENDING, ENDED };
+enum SerialportLinesReaderState { READ_STARTING, READ_NORMAL, READ_ENDING, READ_ENDED, READ_ERROR };
 
 #define SERIALPORT_BUFFER_SIZE 256
-#define PHASE_TAG_BUFFER_SIZE 32
 
 struct SerialportLinesReader {
 	struct sp_port *port;
 	char buffer[SERIALPORT_BUFFER_SIZE];
-	enum SerialportLinesReaderState phase;
-	/// `phase_tag_buffer` stores "CCOVCLCBEGIN" and "CCOVCLCEND"
-	char phase_tag_buffer[PHASE_TAG_BUFFER_SIZE];
-	int phase_tag_index;
-	int time_count;
+	enum SerialportLinesReaderState state;
+	const char *error_info;
 	int (*nonblocking_read)(struct SerialportLinesReader *self);
+	int (*handle_char)(int ch);
+	int time_count;
+	/// `state_tag_buffer` stores "CCOVCLCBEGIN" and "CCOVCLCEND"
+	char state_tag_buffer[32];
+	int state_tag_index;
+	int prev_is_newline;
 };
 
 void SerialportLinesReader_initialize(struct SerialportLinesReader *self);
-
 void SerialportLinesReader_destroy(struct SerialportLinesReader *self);
 
-int SerialportLinesReader_get_lines(
-	struct SerialportLinesReader *self, int timeout
-);
+int SerialportLinesReader_read(struct SerialportLinesReader *self, int timeout);
 
 #endif
 

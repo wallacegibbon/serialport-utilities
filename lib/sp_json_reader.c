@@ -5,12 +5,11 @@
 int SerialportJsonReader_nonblocking_read(struct SerialportJsonReader *self);
 
 void SerialportJsonReader_initialize(struct SerialportJsonReader *self) {
-	self->char_count = 0;
+	self->state = READ_STARTING;
 	self->time_count = 0;
-	self->depth = 0;
-	self->mode = READ_NORMAL;
-	self->handle_char = putchar;
 	self->nonblocking_read = SerialportJsonReader_nonblocking_read;
+	self->handle_char = putchar;
+	self->depth = 0;
 	self->port = NULL;
 }
 
@@ -30,10 +29,10 @@ void SerialportJsonReader_consume_char_string(
 ) {
 	switch (ch) {
 	case '"':
-		self->mode = READ_NORMAL;
+		self->state = READ_NORMAL;
 		break;
 	case '\\':
-		self->mode = READ_ESCAPE;
+		self->state = READ_ESCAPE;
 		break;
 	}
 }
@@ -49,20 +48,34 @@ void SerialportJsonReader_consume_char_normal(
 		self->depth--;
 		break;
 	case '"':
-		self->mode = READ_STRING;
+		self->state = READ_STRING;
 		break;
 	}
+
+	if (self->depth == 0)
+		self->state = READ_ENDED;
 }
 
-enum ConsumeResult { UNFINISHED, FINISHED, INVALID_JSON };
-
-enum ConsumeResult SerialportJsonReader_consume_char(
+void SerialportJsonReader_consume_char_starting(
 	struct SerialportJsonReader *self, char ch
 ) {
-	if (self->char_count == 0 && ch != '{')
-		return INVALID_JSON;
+	if (ch == '{') {
+		self->state = READ_NORMAL;
+		SerialportJsonReader_consume_char_normal(self, ch);
+		return;
+	}
 
-	switch (self->mode) {
+	self->state = READ_ERROR;
+	self->error_info = "invalid start character";
+}
+
+void SerialportJsonReader_consume_char(
+	struct SerialportJsonReader *self, char ch
+) {
+	switch (self->state) {
+	case READ_STARTING:
+		SerialportJsonReader_consume_char_starting(self, ch);
+		break;
 	case READ_NORMAL:
 		SerialportJsonReader_consume_char_normal(self, ch);
 		break;
@@ -74,66 +87,44 @@ enum ConsumeResult SerialportJsonReader_consume_char(
 		break;
 	}
 
-	self->char_count++;
 	self->handle_char(ch);
-
-	//printf(">>>> %d, %d\n", self->char_count, self->depth);
-
-	if (self->depth == 0)
-		return FINISHED;
-	else
-		return UNFINISHED;
 }
 
-void SerialportJsonReader_check(
-	struct SerialportJsonReader *self, enum ConsumeResult prev_consume_ret
-) {
-	switch (prev_consume_ret) {
-	case INVALID_JSON:
-		exit_info(-1, "invalid JSON data response\n");
+int SerialportJsonReader_nonblocking_read(struct SerialportJsonReader *self) {
+	return sp_nonblocking_read(self->port, self->buffer, SERIALPORT_BUFFER_SIZE);
+}
+
+void SerialportJsonReader_next(struct SerialportJsonReader *self) {
+	char *cursor;
+	int count;
+
+	count = self->nonblocking_read(self);
+	if (count < 0)
+		exit_info(-1, "failed reading serial port: (%d)\n", count);
+
+	cursor = self->buffer;
+
+	while (count-- && self->state != READ_ENDED)
+		SerialportJsonReader_consume_char(self, *cursor++);
+
+	switch (self->state) {
+	case READ_ERROR:
+		exit_info(-2, "%s\n", self->error_info);
 		break;
-	case UNFINISHED:
-		/// take a sleep before next nonblocking read from serial port
+	default:
 		sleep_milliseconds(100);
 		self->time_count += 100;
 		break;
 	}
 }
 
-int SerialportJsonReader_nonblocking_read(
-	struct SerialportJsonReader *self
-) {
-	return sp_nonblocking_read(self->port, self->buffer, SERIALPORT_BUFFER_SIZE);
-}
-
-void SerialportJsonReader_next(struct SerialportJsonReader *self) {
-	enum SerialportJsonReaderState ret;
-	char *cursor;
-	int count;
-
-	count = self->nonblocking_read(self);
-	if (count < 0)
-		exit_info(ret, "failed reading serial port: (%d)\n", count);
-
-	cursor = self->buffer;
-	ret = UNFINISHED;
-
-	while (count-- && ret == UNFINISHED)
-		ret = SerialportJsonReader_consume_char(self, *cursor++);
-
-	SerialportJsonReader_check(self, ret);
-}
-
 static inline int SerialportJsonReader_unfinished(
 	struct SerialportJsonReader *self, int timeout
 ) {
-	return (
-		(self->char_count == 0 || self->depth > 0) &&
-		(self->time_count < timeout)
-	);
+	return self->state != READ_ENDED && self->time_count < timeout;
 }
 
-int SerialportJsonReader_get_json(
+int SerialportJsonReader_read(
 	struct SerialportJsonReader *self, int timeout
 ) {
 	while (SerialportJsonReader_unfinished(self, timeout))

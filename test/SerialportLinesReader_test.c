@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
 	SerialportLinesReader_initialize(&reader);
 	reader.nonblocking_read = fake_nonblocking_read;
 
-	ret = SerialportLinesReader_get_lines(&reader, 5000);
+	ret = SerialportLinesReader_read(&reader, 5000);
 	SerialportLinesReader_destroy(&reader);
 
 	if (!ret)

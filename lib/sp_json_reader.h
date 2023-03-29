@@ -3,28 +3,25 @@
 
 #include <libserialport.h>
 
-enum SerialportJsonReaderState { READ_NORMAL, READ_STRING, READ_ESCAPE };
+enum SerialportJsonReaderState { READ_STARTING, READ_NORMAL, READ_STRING, READ_ESCAPE, READ_ENDED, READ_ERROR };
 
 #define SERIALPORT_BUFFER_SIZE 256
 
 struct SerialportJsonReader {
 	struct sp_port *port;
 	char buffer[SERIALPORT_BUFFER_SIZE];
-	int char_count;
+	enum SerialportJsonReaderState state;
+	const char *error_info;
+	int (*nonblocking_read)(struct SerialportJsonReader *self);
+	int (*handle_char)(int ch);
 	int time_count;
 	int depth;
-	enum SerialportJsonReaderState mode;
-	int (*handle_char)(int ch);
-	int (*nonblocking_read)(struct SerialportJsonReader *self);
 };
 
 void SerialportJsonReader_initialize(struct SerialportJsonReader *self);
-
 void SerialportJsonReader_destroy(struct SerialportJsonReader *self);
 
-int SerialportJsonReader_get_json(
-	struct SerialportJsonReader *self, int timeout
-);
+int SerialportJsonReader_read(struct SerialportJsonReader *self, int timeout);
 
 #endif
 

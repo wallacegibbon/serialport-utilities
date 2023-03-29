@@ -1,4 +1,4 @@
-#include "sp_json_reader.h"
+//#include "sp_json_reader.h"
 #include "sp_lines_reader.h"
 #include "sp_util.h"
 #include "sp_port.h"
@@ -21,14 +21,14 @@ int main(int argc, const char **argv) {
 	SerialportJsonReader_initialize(&reader);
 	sp_open_port(&reader.port, argv[1], atoi(argv[2]));
 
-	ret = SerialportJsonReader_get_json(&reader, atoi(argv[3]));
+	ret = SerialportJsonReader_read(&reader, atoi(argv[3]));
 	SerialportJsonReader_destroy(&reader);
 	*/
 
 	SerialportLinesReader_initialize(&reader);
 	sp_open_port(&reader.port, argv[1], atoi(argv[2]));
 
-	ret = SerialportLinesReader_get_lines(&reader, atoi(argv[3]));
+	ret = SerialportLinesReader_read(&reader, atoi(argv[3]));
 	SerialportLinesReader_destroy(&reader);
 
 	if (!ret)

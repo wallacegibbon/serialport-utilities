@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
 	SerialportJsonReader_initialize(&reader);
 	reader.nonblocking_read = fake_nonblocking_read;
 
-	ret = SerialportJsonReader_get_json(&reader, 5000);
+	ret = SerialportJsonReader_read(&reader, 5000);
 	SerialportJsonReader_destroy(&reader);
 
 	if (!ret)
