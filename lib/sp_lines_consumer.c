@@ -13,8 +13,8 @@ static const struct SerialportReaderConsumer consumer_vtable = {
 	.check_error = (SerialportReaderConsumerCheckError) LinesConsumer_check_error
 };
 
-const char *starting_string = "CCOVCLCBEGIN";
-const char *ending_string = "CCOVCLCEND";
+static const char *starting_string = "CCOVCLCBEGIN";
+static const char *ending_string = "CCOVCLCEND";
 
 void LinesConsumer_initialize(struct LinesConsumer *self) {
 	self->state = READ_STARTING;
