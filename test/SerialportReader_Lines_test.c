@@ -4,10 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 const char *test_data1 = "CCOVCLCBEGIN\n";
 const char *test_data2 = "hello\nworld\nCCOVCLCEN\n";
-const char *test_data3 = "CCOVCLCEND\nXXX\n";
+const char *test_data3 = "hello1\n";
+const char *test_data4 = "hello2\n";
+const char *test_data5 = "CCOVCLCEND\nXXX\n";
 
 int fake_nonblocking_read(struct SerialportReader *self) {
 	static int count = 0;
@@ -18,8 +21,14 @@ int fake_nonblocking_read(struct SerialportReader *self) {
 	case 5:
 		strcpy(self->buffer, test_data2);
 		return strlen(self->buffer);
-	case 10:
+	case 30:
 		strcpy(self->buffer, test_data3);
+		return strlen(self->buffer);
+	case 60:
+		strcpy(self->buffer, test_data4);
+		return strlen(self->buffer);
+	case 90:
+		strcpy(self->buffer, test_data5);
 		return strlen(self->buffer);
 	default:
 		return 0;

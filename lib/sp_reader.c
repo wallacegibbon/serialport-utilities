@@ -55,6 +55,10 @@ void SerialportReader_next(struct SerialportReader *self) {
 	if (count < 0)
 		exit_info(-1, "failed reading serial port: (%d)\n", count);
 
+	/// reset counter when data comes
+	if (count > 0)
+		self->time_count = 0;
+
 	cursor = self->buffer;
 
 	while (count-- && !SerialportReader_finished(self))
