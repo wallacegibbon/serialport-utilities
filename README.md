@@ -19,5 +19,4 @@ pacman -S mingw-w64-ucrt-x86_64-gcc
 
 Then build libserialport from source.
 
-> The installation notes of libuv on Windows will be added later...
 
