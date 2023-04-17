@@ -12,7 +12,8 @@ void SerialportReader_initialize(
 		exit_info(-1, "failed alloc memory for buffer\n");
 
 	self->buffer_size = buffer_size;
-	self->time_count = 0;
+	self->empty_time_count = 0;
+	self->total_time_count = 0;
 	self->nonblocking_read = SerialportReader_nonblocking_read;
 	self->port = NULL;
 	self->consumer = NULL;
@@ -57,7 +58,7 @@ void SerialportReader_next(struct SerialportReader *self) {
 
 	/// reset counter when data comes
 	if (count > 0)
-		self->time_count = 0;
+		self->empty_time_count = 0;
 
 	cursor = self->buffer;
 
@@ -68,20 +69,23 @@ void SerialportReader_next(struct SerialportReader *self) {
 		exit_info(-2, "%s\n", error_info);
 
 	sleep_milliseconds(100);
-	self->time_count += 100;
+	self->empty_time_count += 100;
+	self->total_time_count += 100;
 }
 
-/// return false on timeout
-int SerialportReader_read(struct SerialportReader *self, int timeout) {
+int SerialportReader_read(
+	struct SerialportReader *self, int timeout, int total_timeout
+) {
 	if (self->consumer == NULL)
 		exit_info(-3, "consumer is necessary\n");
 
 	while (
-		self->time_count < timeout &&
+		self->empty_time_count < timeout &&
+		self->total_time_count < total_timeout &&
 		!SerialportReader_finished(self)
 	)
 		SerialportReader_next(self);
 
-	return self->time_count < timeout;
+	return SerialportReader_finished(self);
 }
 

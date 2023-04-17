@@ -46,7 +46,8 @@ int main(int argc, const char **argv) {
 	reader.consumer = (struct SerialportReaderConsumer **) &lines_consumer;
 	reader.nonblocking_read = fake_nonblocking_read;
 
-	ret = SerialportReader_read(&reader, 5000);
+	//ret = SerialportReader_read(&reader, 5000, 8000);
+	ret = SerialportReader_read(&reader, 5000, 10000);
 	SerialportReader_destroy(&reader);
 
 	if (!ret)

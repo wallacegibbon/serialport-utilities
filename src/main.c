@@ -14,7 +14,7 @@ int main(int argc, const char **argv) {
 	cmd = "serialport-lines-reader";
 
 	if (argc != 4)
-		exit_info(1, "Usage: %s /dev/ttyACM0 115200 10000\n", cmd);
+		exit_info(1, "Usage: %s /dev/ttyACM0 115200 2000 20000\n", cmd);
 
 	SerialportReader_initialize(&reader, 256);
 
@@ -24,7 +24,7 @@ int main(int argc, const char **argv) {
 
 	sp_open_port(&reader.port, argv[1], atoi(argv[2]));
 
-	ret = SerialportReader_read(&reader, atoi(argv[3]));
+	ret = SerialportReader_read(&reader, atoi(argv[3]), atoi(argv[4]));
 
 	SerialportReader_destroy(&reader);
 

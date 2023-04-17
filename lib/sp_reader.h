@@ -22,7 +22,8 @@ struct SerialportReader {
 	struct sp_port *port;
 	char *buffer;
 	int buffer_size;
-	int time_count;
+	int empty_time_count;
+	int total_time_count;
 	const char *error_info;
 	int (*nonblocking_read)(struct SerialportReader *self);
 	struct SerialportReaderConsumer **consumer;
@@ -31,7 +32,9 @@ struct SerialportReader {
 void SerialportReader_initialize(struct SerialportReader *self, int buffer_size);
 void SerialportReader_destroy(struct SerialportReader *self);
 
-int SerialportReader_read(struct SerialportReader *self, int timeout);
+int SerialportReader_read(
+	struct SerialportReader *self, int timeout, int total_timeout
+);
 
 #endif
 
