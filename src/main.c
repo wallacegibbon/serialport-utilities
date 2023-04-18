@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
 
 	cmd = "serialport-lines-reader";
 
-	if (argc != 4)
+	if (argc != 5)
 		exit_info(1, "Usage: %s /dev/ttyACM0 115200 2000 20000\n", cmd);
 
 	SerialportReader_initialize(&reader, 256);
