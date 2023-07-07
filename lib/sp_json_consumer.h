@@ -15,9 +15,7 @@ struct JsonConsumer {
 	int depth;
 };
 
-void JsonConsumer_initialize(
-	struct JsonConsumer *self
-);
+void JsonConsumer_initialize(struct JsonConsumer *self);
 
 #endif
 

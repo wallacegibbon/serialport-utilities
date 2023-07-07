@@ -18,9 +18,7 @@ struct LinesConsumer {
 	int prev_is_newline;
 };
 
-void LinesConsumer_initialize(
-	struct LinesConsumer *self
-);
+void LinesConsumer_initialize(struct LinesConsumer *self);
 
 #endif
 

@@ -32,9 +32,7 @@ struct SerialportReader {
 void SerialportReader_initialize(struct SerialportReader *self, int buffer_size);
 void SerialportReader_destroy(struct SerialportReader *self);
 
-int SerialportReader_read(
-	struct SerialportReader *self, int timeout, int total_timeout
-);
+int SerialportReader_read(struct SerialportReader *self, int timeout, int total_timeout);
 
 #endif
 

@@ -76,6 +76,9 @@ void JsonConsumer_consume(struct JsonConsumer *self, char ch) {
 	case READ_ESCAPE:
 		JsonConsumer_consume_char_escape(self, ch);
 		break;
+	case  READ_ENDED:
+	case READ_ERROR:
+		break;
 	}
 
 	self->handle_char(ch);

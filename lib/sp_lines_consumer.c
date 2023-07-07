@@ -28,7 +28,6 @@ void LinesConsumer_consume_char_normal(struct LinesConsumer *self, char ch);
 
 void LinesConsumer_consume_char_ending(struct LinesConsumer *self, char ch) {
 	int i;
-
 	if (self->state_tag_index < strlen(ending_string)) {
 		self->state_tag_buffer[self->state_tag_index++] = ch;
 		return;
@@ -95,6 +94,9 @@ void LinesConsumer_consume(struct LinesConsumer *self, char ch) {
 		break;
 	case READ_ENDING:
 		LinesConsumer_consume_char_ending(self, ch);
+		break;
+	case READ_ENDED:
+	case READ_ERROR:
 		break;
 	}
 }

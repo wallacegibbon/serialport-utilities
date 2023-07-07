@@ -3,9 +3,7 @@
 
 #include <libserialport.h>
 
-void sp_open_port(
-	struct sp_port **port, const char *portname, int baudrate
-);
+void sp_open_port(struct sp_port **port, const char *portname, int baudrate);
 
 #endif
 

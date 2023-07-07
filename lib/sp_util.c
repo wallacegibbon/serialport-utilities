@@ -8,7 +8,7 @@
 #include "unistd.h"
 #endif
 
-int sleep_milliseconds(int milliseconds) {
+void sleep_milliseconds(int milliseconds) {
 #if defined(_WIN32) || defined(_WIN64)
 	Sleep(milliseconds);
 #else

@@ -20,3 +20,11 @@ pacman -S mingw-w64-ucrt-x86_64-gcc
 Then build libserialport from source.
 
 
+## Miscellaneous
+
+Generating `compile_commands.json` for clangd:
+
+```sh
+bear -- make
+```
+

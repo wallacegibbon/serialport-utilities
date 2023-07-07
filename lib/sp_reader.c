@@ -4,9 +4,7 @@
 
 int SerialportReader_nonblocking_read(struct SerialportReader *self);
 
-void SerialportReader_initialize(
-	struct SerialportReader *self, int buffer_size
-) {
+void SerialportReader_initialize(struct SerialportReader *self, int buffer_size) {
 	self->buffer = malloc(buffer_size);
 	if (!self->buffer)
 		exit_info(-1, "failed alloc memory for buffer\n");
@@ -29,21 +27,15 @@ int SerialportReader_nonblocking_read(struct SerialportReader *self) {
 	return sp_nonblocking_read(self->port, self->buffer, self->buffer_size);
 }
 
-static inline int SerialportReader_consume(
-	struct SerialportReader *self, char ch
-) {
+static inline int SerialportReader_consume(struct SerialportReader *self, char ch) {
 	return (*self->consumer)->consume(self->consumer, ch);
 }
 
-static inline int SerialportReader_finished(
-	struct SerialportReader *self
-) {
+static inline int SerialportReader_finished(struct SerialportReader *self) {
 	return (*self->consumer)->finished(self->consumer);
 }
 
-static inline int SerialportReader_check_error(
-	struct SerialportReader *self, const char **buf
-) {
+static inline int SerialportReader_check_error(struct SerialportReader *self, const char **buf) {
 	return (*self->consumer)->check_error(self->consumer, buf);
 }
 
@@ -73,9 +65,7 @@ void SerialportReader_next(struct SerialportReader *self) {
 	self->total_time_count += 100;
 }
 
-int SerialportReader_read(
-	struct SerialportReader *self, int timeout, int total_timeout
-) {
+int SerialportReader_read(struct SerialportReader *self, int timeout, int total_timeout) {
 	if (self->consumer == NULL)
 		exit_info(-3, "consumer is necessary\n");
 

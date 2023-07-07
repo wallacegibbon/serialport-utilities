@@ -1,9 +1,7 @@
 #include "sp_port.h"
 #include "sp_util.h"
 
-void sp_open_port(
-	struct sp_port **port, const char *portname, int baudrate
-) {
+void sp_open_port(struct sp_port **port, const char *portname, int baudrate) {
 	int ret;
 
 	ret = sp_get_port_by_name(portname, port);
